@@ -1,87 +1,109 @@
-<html lang="en"> 
-<head> 
-	<meta charset="utf-8" /> 
-	<title>Â·Êé</title> 
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>jsMap</title>
 	<style type="text/css">
-		body, html{width: 100%;height: 100%;margin:0;font-family:"Î¢ÈíÑÅºÚ";}
+		body, html{width: 100%;height: 100%;margin:0;font-family:"jsMap";}
 		#map_canvas{width:100%;height:500px;}
 		#result {width:100%}
 	</style>
-	<script src="http://api.map.baidu.com/api?v=2.0&ak=ÄúµÄÃÜÔ¿"></script>
+	<script src="http://api.map.baidu.com/api?v=2.0&ak=k72UOssK73WMyWoCIZfGLAeh"></script>
 	<script type="text/javascript" src="http://api.map.baidu.com/library/LuShu/1.2/src/LuShu_min.js"></script>
-</head> 
-<body> 
-	<div id="map_canvas"></div> 
-	<div id="result"></div>
-	<button id="run">¿ªÊ¼</button> 
-	<button id="stop">Í£Ö¹</button> 
-	<button id="pause">ÔİÍ£</button> 
-	<button id="hide">Òş²ØĞÅÏ¢´°¿Ú</button> 
-	<button id="show">Õ¹Ê¾ĞÅÏ¢´°¿Ú</button> 
-	<script> 
+</head>
+<body>
+<div id="map_canvas"></div>
+<div id="result"></div>
+<button id="run">å¼€å§‹</button>
+<button id="stop">åœæ­¢</button>
+<button id="pause">æš‚åœ</button>
+<button id="hide">éšè—ä¿¡æ¯çª—å£</button>
+<button id="show">å±•ç¤ºä¿¡æ¯çª—å£</button>
+
+<script>
 	var map = new BMap.Map('map_canvas');
-       var point = new BMap.Point(116.404, 39.915);
-  var point1 = new BMap.Point(116.404, 39.935);
-  var point2 = new BMap.Point(116.404, 39.905);
-  var point3 = new BMap.Point(116.424, 39.915);
-  var point4 = new BMap.Point(116.414, 39.925);
-      var pointArr = [];
-        pointArr.push(point);
-        pointArr.push(point1);
-        pointArr.push(point2);
-        pointArr.push(point3);
-        pointArr.push(point4);
-      
-      
+	var point = new BMap.Point(116.404, 39.915);
+	var point1 = new BMap.Point(116.404, 39.935);
+	var point2 = new BMap.Point(116.404, 39.905);
+	var point3 = new BMap.Point(116.424, 39.915);
+	var point4 = new BMap.Point(116.414, 39.925);
+	var pointArr = [];
+	var lushu;
+
+
 	map.enableScrollWheelZoom();
 	map.centerAndZoom(point, 16);
-	var lushu;
-	// ÊµÀı»¯Ò»¸ö¼İ³µµ¼º½ÓÃÀ´Éú³ÉÂ·Ïß
-    var drv = new BMap.DrivingRoute(point, {
-        onSearchComplete: function(res) {
-            if (drv.getStatus() == BMAP_STATUS_SUCCESS) {
-                var plan = res.getPlan(0);
-                var arrPois =[];
-              var ss = [{"lng":116.403894,"lat":39.914064},{"lng":116.306884,"lat":40.057151}];
-                for(var j=0;j<plan.getNumRoutes();j++){
-                    var route = plan.getRoute(j);
-                    arrPois= arrPois.concat(route.getPath());
-                }
-              alert(JSON.stringify(pointArr));
-                map.addOverlay(new BMap.Polyline(pointArr, {strokeColor: '#111'}));
-                map.setViewport(pointArr);
-                
-                lushu = new BMapLib.LuShu(map,pointArr,{
-                defaultContent:"",//"´ÓÌì°²ÃÅµ½°Ù¶È´óÏÃ"
-                autoView:true,//ÊÇ·ñ¿ªÆô×Ô¶¯ÊÓÒ°µ÷Õû£¬Èç¹û¿ªÆôÄÇÃ´Â·ÊéÔÚÔË¶¯¹ı³ÌÖĞ»á¸ù¾İÊÓÒ°×Ô¶¯µ÷Õû
-                icon  : new BMap.Icon('http://developer.baidu.com/map/jsdemo/img/car.png', new BMap.Size(52,26),{anchor : new BMap.Size(27, 13)}),
-                speed: 4500,
-                enableRotation:true,//ÊÇ·ñÉèÖÃmarkerËæ×ÅµÀÂ·µÄ×ßÏò½øĞĞĞı×ª
-                landmarkPois: [
-                ]});          
-            }
-        }
-    });
-	drv.search('Ìì°²ÃÅ', '°Ù¶È´óÏÃ');
-	//°ó¶¨ÊÂ¼ş
+
+	setTimeout(function(){
+		var convertor = new BMap.Convertor();
+		var pointArr = [];
+		pointArr.push(point);
+		pointArr.push(point1);
+		pointArr.push(point2);
+		pointArr.push(point3);
+		pointArr.push(point4);
+		convertor.translate(pointArr, 1, 5, translateCallback);
+	}, 1000);
+
+	//åæ ‡è½¬æ¢å®Œä¹‹åçš„å›è°ƒå‡½æ•°
+	translateCallback = function (data){
+
+		if(data.status === 0) {
+
+			for (var i = 0; i < data.points.length ; i++) {
+				addMarker(data.points[i]);
+			};
+			drive(data.points);
+
+		}
+
+
+	}
+
+	function drive(datas){
+		map.addOverlay(new BMap.Polyline(datas, {strokeColor: 'green'}));
+		map.setViewport(datas);
+
+		lushu = new BMapLib.LuShu(map,datas,{
+			defaultContent:"",
+			autoView:true,
+			icon  : new BMap.Icon('http://developer.baidu.com/map/jsdemo/img/car.png', new BMap.Size(52,26),{anchor : new BMap.Size(27, 13)}),
+			speed: 4500,
+			enableRotation:true,
+			landmarkPois: [
+			]});
+	}
+
+
 	$("run").onclick = function(){
 		lushu.start();
 	}
-	$("stop").onclick = function(){
-		lushu.stop();
-	}
-	$("pause").onclick = function(){
+	$("pause").onclick = function() {
 		lushu.pause();
-	}
-	$("hide").onclick = function(){
-		lushu.hideInfoWindow();
-	}
-	$("show").onclick = function(){
-		lushu.showInfoWindow();
 	}
 	function $(element){
 		return document.getElementById(element);
 	}
-</script> 
-</body> 
+
+	// ç¼–å†™è‡ªå®šä¹‰å‡½æ•°,åˆ›å»ºæ ‡æ³¨
+	function addMarker(point){
+
+		var marker = new BMap.Marker(point);
+
+		var opts = {
+			position : point,    // æŒ‡å®šæ–‡æœ¬æ ‡æ³¨æ‰€åœ¨çš„åœ°ç†ä½ç½®
+			offset   : new BMap.Size(30, -30)    //è®¾ç½®æ–‡æœ¬åç§»é‡
+		}
+		var label = new BMap.Label("æ–‡æœ¬æ ‡æ³¨å“¦~", opts);  // åˆ›å»ºæ–‡æœ¬æ ‡æ³¨å¯¹è±¡
+		label.setStyle({
+			color : "red",
+			fontSize : "12px",
+			height : "20px",
+			lineHeight : "20px",
+			fontFamily:"å¾®è½¯é›…é»‘"
+		});
+		marker.setLabel(label);
+		map.addOverlay(marker);
+	}
+</script>
+</body>
 </html> 
